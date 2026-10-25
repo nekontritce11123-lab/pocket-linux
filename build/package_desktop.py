@@ -8,7 +8,7 @@ import stat
 import time
 import zipfile
 
-FILES = ('Launcher.exe', 'linux.qcow2', 'start.py', 'README.txt', 'COMPONENTS.json',
+FILES = ('Launcher.exe', 'release-info.json', 'linux.qcow2', 'start.py', 'README.txt', 'COMPONENTS.json',
          'runtime/components-recovery.zip', 'runtime/components-manifest.json', 'scripts/Prepare-Dependencies.ps1',
          'scripts/portable_app.py', 'scripts/runtime_supervisor.py',
          'scripts/profile_store.py', 'scripts/connection_profile.py', 'scripts/host_folders.py',

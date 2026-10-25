@@ -24,7 +24,7 @@ class PackageTests(unittest.TestCase):
             package.payload(root)
 
     def test_allowlist_excludes_personal_profile_and_verifies_extraction(self):
-        test_root = Path(__file__).resolve().parents[2] / 'Разработка/Служебное/_temp/2026-10-25-pocket-linux/desktop-build/package-tests'
+        test_root = Path(tempfile.gettempdir()) / 'pocket-linux-package-tests'
         test_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=test_root) as scratch:
             base = Path(scratch)

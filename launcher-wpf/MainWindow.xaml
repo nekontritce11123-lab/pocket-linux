@@ -27,10 +27,12 @@
                     <StackPanel DockPanel.Dock="Bottom">
                         <Button x:Name="NextActionButton" Style="{StaticResource SoftPill}" Height="44" FontSize="14.5" Margin="0,8,0,0" Click="OnNextAction" />
                         <Button x:Name="StopButton" Style="{StaticResource DangerPill}" Height="44" FontSize="14.5" Margin="0,8,0,0" Click="OnStop" Content="Выключить Linux" />
+                        <Button x:Name="ForceStopButton" Style="{StaticResource DangerPill}" Height="40" FontSize="13" Margin="0,8,0,0" Click="OnForceStop" Content="Принудительно выключить" Visibility="Collapsed" />
                     </StackPanel>
-                    <!-- Shrinks to fit when the card also shows steps and the stop button -->
-                    <Viewbox StretchDirection="DownOnly" VerticalAlignment="Center"><StackPanel x:Name="Hero" Width="244">
-                        <Grid Width="196" Height="196" HorizontalAlignment="Center">
+                    <Grid x:Name="Hero">
+                        <Grid.RowDefinitions><RowDefinition Height="*" MinHeight="40" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <!-- Only the icon shrinks; the status and actions retain readable font sizes. -->
+                        <Viewbox StretchDirection="DownOnly" MaxHeight="196"><Grid Width="196" Height="196" HorizontalAlignment="Center">
                             <Ellipse x:Name="Pulse" Fill="{StaticResource Accent}" Opacity="0" RenderTransformOrigin="0.5,0.5">
                                 <Ellipse.RenderTransform><ScaleTransform /></Ellipse.RenderTransform>
                             </Ellipse>
@@ -57,13 +59,13 @@
                                 </StackPanel>
                             </Button>
                             <ui:SymbolIcon x:Name="StatusGlyph" Symbol="Desktop24" FontSize="44" Foreground="{StaticResource Accent}" IsHitTestVisible="False" />
-                        </Grid>
-                        <TextBlock x:Name="StatusText" Text="Проверяем готовность…" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource Ink}"
-                                   TextAlignment="Center" TextWrapping="Wrap" Margin="0,18,0,0" />
-                        <TextBlock x:Name="NextStepText" FontSize="13" Foreground="{StaticResource Muted}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0" />
-                        <TextBlock x:Name="NetworkText" FontSize="12.5" Foreground="#A06A12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0" />
-                        <UniformGrid x:Name="Steps" Columns="4" Margin="0,14,0,0" />
-                    </StackPanel></Viewbox>
+                        </Grid></Viewbox>
+                        <TextBlock x:Name="StatusText" Grid.Row="1" Text="Проверяем готовность…" FontSize="19" FontWeight="SemiBold" Foreground="{StaticResource Ink}"
+                                   TextAlignment="Center" TextWrapping="Wrap" Margin="0,10,0,0" />
+                        <TextBlock x:Name="NextStepText" Grid.Row="2" FontSize="13" Foreground="{StaticResource Muted}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0" />
+                        <TextBlock x:Name="NetworkText" Grid.Row="3" FontSize="12.5" Foreground="#A06A12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0" />
+                        <UniformGrid x:Name="Steps" Grid.Row="4" Columns="4" Margin="0,10,0,0" />
+                    </Grid>
                 </DockPanel>
             </Border>
 
@@ -205,7 +207,7 @@
                                     <Border DockPanel.Dock="Right" Background="{StaticResource Page}" CornerRadius="10" Padding="2" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal">
                                             <Button Style="{StaticResource Step}" Click="OnMemoryDown" ToolTip="Меньше на 0,5 ГиБ" AutomationProperties.Name="Память меньше"><ui:SymbolIcon Symbol="Subtract16" FontSize="14" Foreground="#3390EC" /></Button>
-                                            <TextBox x:Name="MemoryInput" Style="{StaticResource Number}" LostKeyboardFocus="OnSettingEdited" KeyDown="OnNumberKey" />
+                                            <TextBox x:Name="MemoryInput" Style="{StaticResource Number}" TextChanged="OnSettingChanged" LostKeyboardFocus="OnSettingEdited" KeyDown="OnNumberKey" />
                                             <Button Style="{StaticResource Step}" Click="OnMemoryUp" ToolTip="Больше на 0,5 ГиБ" AutomationProperties.Name="Память больше"><ui:SymbolIcon Symbol="Add16" FontSize="14" Foreground="#3390EC" /></Button>
                                         </StackPanel>
                                     </Border>
@@ -217,7 +219,7 @@
                                     <Border DockPanel.Dock="Right" Background="{StaticResource Page}" CornerRadius="10" Padding="2" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal">
                                             <Button Style="{StaticResource Step}" Click="OnCpuDown" AutomationProperties.Name="Процессоров меньше"><ui:SymbolIcon Symbol="Subtract16" FontSize="14" Foreground="#3390EC" /></Button>
-                                            <TextBox x:Name="CpuInput" Style="{StaticResource Number}" LostKeyboardFocus="OnSettingEdited" KeyDown="OnNumberKey" />
+                                            <TextBox x:Name="CpuInput" Style="{StaticResource Number}" TextChanged="OnSettingChanged" LostKeyboardFocus="OnSettingEdited" KeyDown="OnNumberKey" />
                                             <Button Style="{StaticResource Step}" Click="OnCpuUp" AutomationProperties.Name="Процессоров больше"><ui:SymbolIcon Symbol="Add16" FontSize="14" Foreground="#3390EC" /></Button>
                                         </StackPanel>
                                     </Border>

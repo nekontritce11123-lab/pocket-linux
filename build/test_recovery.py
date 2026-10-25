@@ -15,7 +15,7 @@ import recovery
 
 PROJECT = HERE.parents[1]
 SCRIPT = HERE.parent / 'scripts/Prepare-Dependencies.ps1'
-TEMP = PROJECT / 'Разработка/Служебное/_temp/2026-10-25-pocket-linux/desktop-build/recovery-tests'
+TEMP = Path(tempfile.gettempdir()) / 'pocket-linux-recovery-tests'
 POWERSHELL = Path(os.environ.get('SystemRoot', 'C:\\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
 
 

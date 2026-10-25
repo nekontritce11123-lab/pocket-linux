@@ -121,14 +121,16 @@ def profile_to_network(profile, resolve_host=True):
     return {'listen': '127.0.0.1:0', 'dns_upstream': '1.1.1.1:53', 'proxy': proxy}
 
 
-def process_identity(pid):
+def process_identity(pid, *, handle=None):
     if type(pid) is not int or not 1 <= pid <= 0xffffffff:
         raise BackendError('Сохранён некорректный идентификатор процесса.')
     kernel = ctypes.WinDLL('kernel32', use_last_error=True)
     kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
     kernel.OpenProcess.restype = wintypes.HANDLE
     kernel.CloseHandle.argtypes = [wintypes.HANDLE]
-    handle = kernel.OpenProcess(0x1000, False, pid)
+    owned = handle is None
+    if owned:
+        handle = kernel.OpenProcess(0x1000, False, pid)
     if not handle:
         if ctypes.get_last_error() in (87, 1168):
             return None
@@ -153,7 +155,8 @@ def process_identity(pid):
         return {'pid': pid, 'created': str((times[0].dwHighDateTime << 32) | times[0].dwLowDateTime),
                 'image': str(Path(buffer.value).resolve())}
     finally:
-        kernel.CloseHandle(handle)
+        if owned:
+            kernel.CloseHandle(handle)
 
 
 def same_identity(expected, actual):
@@ -226,7 +229,7 @@ def snapshot(root):
         if not result['control_available']:
             result['work'] = 'control-unavailable-guest-running'
     elif live['supervisor'] == 'alive' or launching:
-        result['work'] = 'stopping' if state['phase'] == 'stopping' else 'starting'
+        result['work'] = 'stopping' if state['phase'] == 'stopping' or state.get('work') and live['work'] == 'dead' else 'starting'
     elif result['uncertain']:
         result['work'] = 'control-unavailable-guest-running'
     if live['network'] == 'alive':
@@ -357,9 +360,13 @@ def decode_control(payload, nonce, token):
         raise BackendError('Недопустимый запрос управления.')
     try:
         request = json.loads(payload)
-        if (not isinstance(request, dict) or set(request) != {'nonce', 'token', 'action'}
+        force = isinstance(request, dict) and request.get('action') == 'force-stop'
+        keys = {'nonce', 'token', 'action'} | ({'confirmed', 'session'} if force else set())
+        if (not isinstance(request, dict) or set(request) != keys
                 or request['nonce'] != nonce or request['token'] != token
-                or request['action'] not in ('stop', 'ping')):
+                or request['action'] not in ('stop', 'ping', 'force-stop')
+                or force and (request['confirmed'] is not True or type(request['session']) is not dict
+                              or request['session'].get('nonce') != nonce)):
             raise ValueError()
         return request['action']
     except (ValueError, TypeError, KeyError, UnicodeError):
@@ -387,7 +394,7 @@ def _receive(connection, limit):
     return bytes(payload)
 
 
-def send_control(root, action):
+def send_control(root, action, session=None):
     view = snapshot(root)
     state = view['state']
     if not view['control_available'] or not state:
@@ -400,14 +407,88 @@ def send_control(root, action):
         token = _unprotect(protected).get('token')
     if not isinstance(token, str) or len(token) != 64 or any(c not in '0123456789abcdef' for c in token):
         raise BackendError('Безопасное управление сеансом не подтверждено.')
+    request = {'nonce': state['nonce'], 'token': token, 'action': action}
+    if action == 'force-stop':
+        if force_stop_offer(root) != session:
+            raise BackendError('Сеанс изменился; обнови состояние перед подтверждением.')
+        request.update(confirmed=True, session=session)
     with socket.create_connection(('127.0.0.1', state['control_port']), timeout=5) as connection:
-        connection.sendall(json.dumps({'nonce': state['nonce'], 'token': token, 'action': action}).encode('ascii') + b'\n')
+        if action == 'force-stop':
+            connection.settimeout(15)
+        connection.sendall(json.dumps(request).encode('ascii') + b'\n')
         reply = json.loads(_receive(connection, 4096))
     if not isinstance(reply, dict) or reply.get('nonce') != state['nonce'] or type(reply.get('ok')) is not bool:
         raise BackendError('Ответ управления не подтверждён. Linux не останавливался принудительно.')
     if not reply['ok']:
         raise BackendError('Не удалось отправить штатное выключение. Выключи Linux через его меню.')
+    if action == 'force-stop' and (reply.get('forced') is not True or reply.get('graceful') is not False):
+        raise BackendError('Результат принудительной остановки не подтверждён; проверь состояние.')
     return reply
+
+
+def force_stop_offer(root, view=None):
+    view = snapshot(root) if view is None else view
+    state = view.get('state') or {}
+    requested = state.get('stop_requested_unix')
+    if (view.get('uncertain') or not view.get('control_available')
+            or view.get('identities', {}).get('work') != 'alive'
+            or view.get('identities', {}).get('supervisor') != 'alive'
+            or type(requested) not in (int, float) or not 120 <= time.time() - requested
+            or not all(state.get(key) for key in ('nonce', 'work', 'supervisor'))):
+        return None
+    return {key: state[key] for key in ('nonce', 'work', 'supervisor')}
+
+
+def force_owned_guest(root, state, vm, session):
+    expected = state.get('work')
+    requested = state.get('stop_requested_unix')
+    latest = read_state(root)
+    if (not expected or type(session) is not dict or session != {key: state.get(key) for key in ('nonce', 'work', 'supervisor')}
+            or latest is None or any(latest.get(key) != session[key] for key in session)
+            or type(requested) not in (int, float) or latest.get('stop_requested_unix') != requested
+            or not 120 <= time.time() - requested
+            or vm.pid != expected['pid'] or vm.poll() is not None
+            or os.path.normcase(expected['image']) != os.path.normcase(str((root / 'runtime/qemu-11.1.0/qemu-system-x86_64.exe').resolve()))
+            or not same_identity(expected, process_identity(vm.pid, handle=vm._handle))):
+        raise BackendError('Владелец процесса или сеанс не подтверждён; Linux сохранён.')
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.TerminateProcess.argtypes = [wintypes.HANDLE, wintypes.UINT]
+    kernel.TerminateProcess.restype = wintypes.BOOL
+    # The Popen handle pins this exact child even if its PID is later reused.
+    latest = read_state(root)
+    if (latest is None or any(latest.get(key) != session[key] for key in session)
+            or latest.get('stop_requested_unix') != requested
+            or not same_identity(expected, process_identity(vm.pid, handle=vm._handle))):
+        raise BackendError('Сеанс изменился; принудительная остановка отменена.')
+    if not kernel.TerminateProcess(vm._handle, 1):
+        raise BackendError('Завершение Linux не подтверждено. Процессы и диск сохранены.')
+    state.update(forced_stop=True, graceful_shutdown=False, phase='stopping',
+                 message='Linux завершается принудительно; несохранённые данные могли быть потеряны.')
+    write_json(root / 'state/session.json', state)
+    vm.wait(timeout=10)
+
+
+def force_stop_session(root, request):
+    if (type(request) is not dict or set(request) != {'confirmed', 'session'}
+            or request['confirmed'] is not True or type(request['session']) is not dict):
+        raise BackendError('Нужно отдельное явное подтверждение принудительной остановки Linux.')
+    if force_stop_offer(root) != request['session']:
+        raise BackendError('Сеанс изменился или штатное выключение ещё ожидается; обнови состояние.')
+    send_control(root, 'force-stop', session=request['session'])
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        view = snapshot(root)
+        if (view.get('state') or {}).get('nonce') != request['session']['nonce']:
+            raise BackendError('Сеанс изменился; повтори проверку состояния.')
+        if not view['active']:
+            recovered = recover_session(root)
+            if not recovered['ok']:
+                return {**recovered, 'forced': True, 'graceful': False}
+            return {**recovered, 'forced': True, 'graceful': False, 'code': 'forced_stopped',
+                    'message': 'Linux остановлен принудительно. Несохранённые данные могли быть потеряны.'}
+        time.sleep(.25)
+    return {'ok': False, 'forced': True, 'graceful': False, 'pending': True, 'code': 'forced_cleanup_pending',
+            'message': 'Завершение запрошено; владелец ещё освобождает диск и вспомогательные процессы. Проверь состояние.'}
 
 
 def start_session(root, settings):
@@ -456,21 +537,44 @@ def stop_session(root):
     view = snapshot(root)
     if not view['active']:
         return {'ok': True, 'message': 'Linux уже выключен.'}
+    if view.get('identities', {}).get('work') == 'dead':
+        return recover_session(root)
     send_control(root, 'stop')
+    nonce = view['state']['nonce']
     deadline = time.monotonic() + 120
     while time.monotonic() < deadline:
         view = snapshot(root)
+        if (view.get('state') or {}).get('nonce') != nonce:
+            raise BackendError('Сеанс изменился; повтори проверку состояния.')
         if not view['active'] and view['work'] == 'stopped':
+            if view['state'].get('graceful_shutdown') is not True or view['state'].get('forced_stop'):
+                return {'ok': False, 'code': 'abnormal_shutdown', 'graceful': False,
+                        'message': 'Linux завершился нештатно. Диск сохранён; восстанови завершившийся сеанс.'}
             return {'ok': True, 'message': 'Linux штатно выключен.'}
         time.sleep(0.25)
     return {'ok': False, 'pending': True, 'code': 'shutdown_unconfirmed',
-            'message': 'Штатное выключение отправлено, но ещё не завершено. Linux не останавливался принудительно.'}
+            'force_stop_session': force_stop_offer(root, view),
+            'message': 'Штатное выключение не завершилось за 120 секунд. Можно отдельно подтвердить принудительную остановку с риском потери несохранённых данных.'}
 
 
 def recover_session(root):
     view = snapshot(root)
     if view['state'] is None:
         return {'ok': True, 'message': 'Незавершённого сеанса нет.'}
+    nonce = view['state']['nonce']
+    deadline = time.monotonic() + 15
+    while (view['identities'].get('work') == 'dead' and view['identities'].get('supervisor') == 'alive'
+           and not view['uncertain']):
+        if time.monotonic() >= deadline:
+            return {'ok': False, 'pending': True, 'code': 'cleanup_pending',
+                    'message': 'Linux уже завершён; владелец ещё освобождает диск и помощников. Повтори восстановление после его завершения.'}
+        time.sleep(.25)
+        view = snapshot(root)
+        if (view.get('state') or {}).get('nonce') != nonce:
+            raise BackendError('Сеанс изменился; процессы сохранены.')
+    if (view['identities'].get('work') == 'dead' and view['identities'].get('supervisor') == 'dead'
+            and 'alive' in view['identities'].values()):
+        raise BackendError('Linux завершён, но владелец помощников потерян. Процессы сохранены: закрой этот комплект после перезапуска Windows и повтори восстановление.')
     if view['uncertain'] or 'alive' in view['identities'].values():
         raise BackendError('Процессы ещё работают или не опознаны. Выключи Linux штатно; незнакомые PID не изменены.')
     helper = helper_module(root)
@@ -479,6 +583,8 @@ def recover_session(root):
         if latest['uncertain'] or 'alive' in latest['identities'].values():
             raise BackendError('Состояние изменилось. Процессы сохранены; повтори проверку.')
         state = latest['state']
+        if state is None or state['nonce'] != nonce:
+            raise BackendError('Сеанс изменился; восстановление отменено.')
         private = root / 'state' / ('session-' + state['nonce'])
         for name in ('proxy.json', 'control.json', 'clipboard.json', 'status.json'):
             secret = private / name
@@ -486,7 +592,7 @@ def recover_session(root):
                 _plain(private)
                 _plain(secret)
                 secret.unlink()
-        state.update(phase='stopped', supervisor=None, work=None, network=None, control_port=None,
+        state.update(phase='stopped', supervisor=None, work=None, network=None, folders=None, control_port=None,
                      message='Завершившийся сеанс закрыт; диск и профили сохранены.')
         write_json(root / 'state/session.json', state)
     return {'ok': True, 'message': state['message']}
@@ -611,12 +717,18 @@ def supervise(root, nonce):
                         connection.settimeout(3)
                         reply = {'ok': False}
                         try:
-                            action = decode_control(_receive(connection, 4096), nonce, control_token)
+                            payload = _receive(connection, 4096)
+                            action = decode_control(payload, nonce, control_token)
                             reply['nonce'] = nonce
                             if action == 'stop':
+                                state.setdefault('stop_requested_unix', time.time())
+                                write_json(root / 'state/session.json', state)
                                 qmp.execute('system_powerdown')
                                 state.update(phase='stopping', message='Ожидается штатное выключение Linux.')
                                 write_json(root / 'state/session.json', state)
+                            elif action == 'force-stop':
+                                force_owned_guest(root, state, vm, json.loads(payload)['session'])
+                                reply.update(forced=True, graceful=False)
                             reply['ok'] = True
                         except (OSError, ValueError, KeyError):
                             pass
@@ -624,8 +736,10 @@ def supervise(root, nonce):
                             connection.sendall(json.dumps(reply).encode('ascii') + b'\n')
                         except OSError:
                             pass
-            state.update(phase='stopped' if vm.returncode == 0 else 'failed',
-                         message='Linux выключен.' if vm.returncode == 0 else 'QEMU завершился с ошибкой. Проверь state/qemu-stderr.log.')
+            state.update(phase='stopped' if vm.returncode == 0 and not state.get('forced_stop') else 'failed',
+                         graceful_shutdown=vm.returncode == 0 and not state.get('forced_stop'),
+                         message='Linux остановлен принудительно; несохранённые данные могли быть потеряны.' if state.get('forced_stop') else
+                                 'Linux выключен.' if vm.returncode == 0 else 'QEMU завершился с ошибкой. Проверь state/qemu-stderr.log.')
         except BaseException as error:
             if vm is not None and vm.poll() is None and resumed:
                 state.update(phase='control-unavailable-guest-running', control_port=None,

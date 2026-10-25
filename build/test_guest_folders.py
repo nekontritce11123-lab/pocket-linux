@@ -20,7 +20,7 @@ def config():
 
 class GuestFolderTests(unittest.TestCase):
     def test_old_mountpoints_are_removed_without_touching_mounts_or_user_data(self):
-        scratch = Path(__file__).resolve().parents[2] / 'Разработка/Служебное/_temp/2026-10-25-pocket-linux/desktop-build/folder-tests'
+        scratch = Path(tempfile.gettempdir()) / 'pocket-linux-folder-tests'
         scratch.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=scratch) as directory:
             root = Path(directory)

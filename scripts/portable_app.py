@@ -236,10 +236,15 @@ def report(root, full=False):
         view = runtime.snapshot(root)
         valid_state = not view['uncertain'] and view['work'] != 'control-unavailable-guest-running'
         if view['state'] and (view['state']['phase'] == 'failed'
-                              or not view['active'] and view['state']['phase'] != 'stopped'):
+                              or view['work'] == 'stopped' and view['state']['phase'] != 'stopped'):
             valid_state = False
-        check('runtime_state', valid_state, 'Состояние Linux', 'Сеанс опознан.' if valid_state else
-              'Выключи Linux через меню или восстанови завершившийся сеанс.', 'recover_session', 'Восстановить сеанс')
+        orphaned = (view.get('identities', {}).get('work') == 'dead'
+                    and view.get('identities', {}).get('supervisor') == 'dead'
+                    and 'alive' in view.get('identities', {}).values())
+        check('runtime_state', valid_state and not orphaned, 'Состояние Linux',
+              'Linux завершён, но владелец помощников потерян. Они сохранены; перезапусти Windows и восстанови сеанс.' if orphaned else
+              'Сеанс опознан.' if valid_state else 'Выключи Linux через меню или восстанови завершившийся сеанс.',
+              'recover_session', 'Восстановить сеанс')
     except (OSError, ValueError):
         view = {'state': None, 'active': True, 'uncertain': True, 'work': 'control-unavailable-guest-running',
                 'gateway': 'stopped', 'control_available': False, 'identities': {}}
@@ -308,6 +313,12 @@ def report(root, full=False):
         warning = ''
     elif applied_id and running and (status.get('network') == 'failed' or view['gateway'] != 'running'):
         warning = 'Подключение недоступно. Прямой выход в интернет заблокирован.'
+    force_offer = runtime.force_stop_offer(root, view)
+    identities = view.get('identities', {})
+    recoverable = bool(view['state'] and (view['state']['phase'] != 'stopped' or view['active'])
+                       and not checks['runtime_state']['passed']
+                       and not view['uncertain'] and not {'foreign', 'unknown'}.intersection(identities.values())
+                       and (not view['active'] or identities.get('work') == 'dead' and identities.get('supervisor') == 'alive'))
     return {**settings, 'ok': not blockers, 'schema': 1, 'root': str(root), 'host': host,
             'message': blockers[0]['title'] if blockers else 'Linux работает.' if running else 'Всё готово к запуску Linux.',
             'report_kind': 'preflight' if full else 'runtime_status', 'checks': checks, 'blockers': blockers,
@@ -318,8 +329,11 @@ def report(root, full=False):
             'connection': {'selected_profile': selected, 'verified': verified,
                            'selected_applied': selected_applied,
                            'applied_profile_id': applied_id, 'applied_revision_id': applied_revision},
-            'capabilities': {'stop': bool(view['control_available']), 'test_profile': supported and not view['active'],
-                             'recover_session': not view['active'], 'prepare_host': False},
+            'force_stop_session': force_offer,
+            'capabilities': {'stop': bool(view['control_available']), 'force_stop': force_offer is not None,
+                             'test_profile': supported and not view['active'],
+                             'recover_session': recoverable,
+                             'prepare_host': False},
             'gateway_version': 'PocketNet', 'host_files': {'status': files_state},
             'windows_display': display_state,
             'clipboard': {'status': (view.get('state') or {}).get('clipboard_status', 'off') if running else 'off'},
@@ -397,6 +411,10 @@ def dispatch(root, action, request):
         return save_settings(root, request)
     if action == 'test-profile':
         return test_profile(root, request)
+    if action == 'force-stop':
+        with runtime.operation_lock(root):
+            result = runtime.force_stop_session(root, request)
+        return report(root) | result
     if request:
         raise BackendError('Это действие не принимает дополнительных полей.')
     if action in ('diagnose', 'status'):

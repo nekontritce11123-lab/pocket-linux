@@ -71,6 +71,7 @@ internal static class Bridge
             case "test-profile": return 330000;
             case "stop": return 510000;
             case "repair-gateway":
+            case "force-stop":
             case "recover-session": return 180000;
             case "prepare-host": return 210000;
             default: return 30000;

@@ -11,9 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class LauncherAttentionTests(unittest.TestCase):
     def test_offline_session_and_real_failures(self):
         compiler = Path(os.environ['SystemRoot']) / 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
-        scratch = ROOT.parent / 'Разработка/Служебное/_temp/2026-10-25-pocket-linux/desktop-build/launcher-tests'
-        scratch.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=scratch) as temporary:
+        with tempfile.TemporaryDirectory(prefix="linux-attention-") as temporary:
             executable = Path(temporary) / 'LauncherAttentionRegression.exe'
             build = subprocess.run([str(compiler), '/nologo', '/target:exe', '/platform:x64',
                                     '/out:' + str(executable), str(ROOT / 'launcher-wpf/AttentionPolicy.cs'),

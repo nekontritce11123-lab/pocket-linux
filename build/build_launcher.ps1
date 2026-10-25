@@ -1,9 +1,9 @@
-[CmdletBinding()]
-param()
+﻿[CmdletBinding()]
+param([string]$BuildDirectory)
 $ErrorActionPreference = 'Stop'
 $linuxRoot = Split-Path -Parent $PSScriptRoot
 $projectRoot = Split-Path -Parent $linuxRoot
-$buildRoot = Join-Path $projectRoot 'Разработка\Служебное\_temp\2026-10-25-pocket-linux\desktop-build\launcher'
+$buildRoot = if ($BuildDirectory) { [IO.Path]::GetFullPath($BuildDirectory) } else { Join-Path $projectRoot 'Разработка\Служебное\_temp\2026-10-25-pocket-linux\desktop-build\launcher' }
 $output = Join-Path $buildRoot 'out'
 $intermediate = Join-Path $buildRoot 'obj'
 $feed = Join-Path $buildRoot 'empty-feed'

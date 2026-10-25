@@ -9,7 +9,7 @@ from unittest import mock
 spec = importlib.util.spec_from_file_location('guest_access', Path(__file__).with_name('guest_access.py'))
 access = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(access)
-TEMP = Path(__file__).resolve().parents[2] / 'Разработка/Служебное/_temp/2026-10-25-pocket-linux/desktop-build/access-tests'
+TEMP = Path(tempfile.gettempdir()) / 'pocket-linux-access-tests'
 
 
 class AccessTests(unittest.TestCase):
