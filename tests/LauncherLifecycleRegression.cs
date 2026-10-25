@@ -148,6 +148,17 @@ internal static class LauncherLifecycleRegression
             var polled = (Task)Call(window, "RefreshRuntimeAsync"); Pump(() => polled.IsCompleted);
             Assert(((Button)Field(window, "ForceStopButton")).Visibility == Visibility.Collapsed, "poll updates capability without runtime state change");
             window = Window(); Assert(((Button)Field(window, "StartButton")).IsEnabled, "no profile leaves offline Linux ready to start");
+            Assert(((TextBlock)Field(window, "NextStepText")).Text.Contains("без интернета"), "offline launch explains that no network will be started");
+            var connected = Report();
+            connected["connection"] = new Dictionary<string, object> { { "selected_profile", new Dictionary<string, object> { { "name", "Test" }, { "protocol", "socks5" } } } };
+            Call(window, "Display", connected);
+            Assert(((TextBlock)Field(window, "NextStepText")).Text.Contains("защищённое подключение"), "selected profile keeps the network startup explanation");
+            var offlineRunning = Report("running", "stopped"); offlineRunning["network_warning"] = "Linux запущен без интернета.";
+            Call(window, "Display", offlineRunning);
+            Assert(((TextBlock)Field(window, "NetworkText")).Text.Contains("без интернета"), "offline session does not ask to repair a nonexistent connection");
+            ((Dictionary<string, object>)offlineRunning["connection"])["applied_profile_id"] = "selected";
+            Call(window, "Display", offlineRunning);
+            Assert(((TextBlock)Field(window, "NetworkText")).Text.Contains("Проверь подключение"), "failed applied connection still explains the required check");
             Bridge.Calls.Clear(); Call(window, "OnUpdate", null, new RoutedEventArgs()); Call(window, "OnCheckUpdates", null, new RoutedEventArgs());
             Assert(Bridge.Calls.Count == 0 && !((Button)Field(window, "CheckUpdatesButton")).IsEnabled && ((Button)Field(window, "InstallUpdateButton")).Visibility == Visibility.Collapsed, "Linux updater remains disabled");
             foreach (string action in new[] { "stop", "recover-session" })

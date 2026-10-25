@@ -626,7 +626,10 @@ namespace WindowsClaude.Launcher
             if (StatusText.Text.Length > 56) StatusText.Text = "Нужна проверка";
             if (blocker == null && !Bridge.Ok(result) && Friendly(Bridge.Message(result)) != Bridge.Message(result)) StatusText.Text = "Linux не запустился";
             if (isReadiness && Bridge.Ok(result)) StatusText.Text = RuntimeHeading(workState, gatewayState);
-            NextStepText.Text = blocker == null ? (Bridge.Ok(result) ? "Сначала поднимется защищённое подключение, затем Linux." : Friendly(Bridge.Message(result))) : Text(blocker, "detail", Bridge.Message(result));
+            string launchHint = Child(Child(report, "connection"), "selected_profile") == null
+                ? "Linux запустится без интернета. Для доступа к сети добавь подключение."
+                : "Сначала поднимется защищённое подключение, затем Linux.";
+            NextStepText.Text = blocker == null ? (Bridge.Ok(result) ? launchHint : Friendly(Bridge.Message(result))) : Text(blocker, "detail", Bridge.Message(result));
             if (isReadiness && Bridge.Ok(result) && runtimeActive) NextStepText.Text = "Linux: " + VmState(workState) + ". Сеть: " + VmState(gatewayState, true) + ".";
             suggestedAction = blocker == null ? "retry" : Text(blocker, "action", "retry");
             NextActionButton.Content = blocker == null ? "Проверить снова" : Text(blocker, "action_label", "Проверить снова");
@@ -656,7 +659,10 @@ namespace WindowsClaude.Launcher
             UpdateHero(report, filesState);
             if (StatusText.Text != shownStatus) { shownStatus = StatusText.Text; Rise(StatusText, 0); Rise(NextStepText, 60); }
             string warning = runtimeActive ? Text(report, "network_warning", "") : "";
-            NetworkText.Text = "Проверь подключение. Подробности в «Проверка»."; Show(NetworkText, warning.Length > 0 && Bridge.Ok(result));
+            NetworkText.Text = Text(Child(report, "connection"), "applied_profile_id", "").Length == 0
+                ? "Linux работает без интернета. Добавь подключение для следующего запуска."
+                : "Проверь подключение. Подробности в «Проверка».";
+            Show(NetworkText, warning.Length > 0 && Bridge.Ok(result));
 
             string signature = new JavaScriptSerializer().Serialize(checks.Select(item => new object[] { Flag(item, "passed"), Text(item, "title", ""), Text(item, "detail", "") }).ToArray()) + Bridge.Message(result);
             if (signature != displayedChecks)
