@@ -1,0 +1,67 @@
+{
+  "repository": "https://github.com/dglava/arc-openbox",
+  "commit": "5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3",
+  "license": "GPL-3.0",
+  "files": [
+    {
+      "path": "Arc/openbox-3/close.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/close.xbm",
+      "bytes": 136,
+      "sha256": "7b233ddb175dd55e224c26fb58c5be7d44e7490110ebe1e763eb3c40698d95e4"
+    },
+    {
+      "path": "Arc/openbox-3/desk.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/desk.xbm",
+      "bytes": 157,
+      "sha256": "2d01ec9144dd3fe7b40b6b4808a766d45bede6257b1053a28e5ef01263ea4df4"
+    },
+    {
+      "path": "Arc/openbox-3/desk_toggled.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/desk_toggled.xbm",
+      "bytes": 133,
+      "sha256": "f5763b98eb932df223af2f35124c8f5770a8a9413ea83b6c10e54a1ac67686ac"
+    },
+    {
+      "path": "Arc/openbox-3/iconify.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/iconify.xbm",
+      "bytes": 142,
+      "sha256": "398d4ecc4b1a5196dfc4db1d492f39e10232222a267034ec24c9bc509526a59e"
+    },
+    {
+      "path": "Arc/openbox-3/max.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/max.xbm",
+      "bytes": 172,
+      "sha256": "16bff3c5a194d37dbee674d2078e17ed5f89bf8a6a5e62f65c46a9b04b39ab8a"
+    },
+    {
+      "path": "Arc/openbox-3/max_toggled.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/max_toggled.xbm",
+      "bytes": 172,
+      "sha256": "16bff3c5a194d37dbee674d2078e17ed5f89bf8a6a5e62f65c46a9b04b39ab8a"
+    },
+    {
+      "path": "Arc/openbox-3/shade.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/shade.xbm",
+      "bytes": 136,
+      "sha256": "d38acedce1eacb2d8eaac961903040270cfcd2c2413b022e32a1e3490e083aff"
+    },
+    {
+      "path": "Arc/openbox-3/shade_toggled.xbm",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/shade_toggled.xbm",
+      "bytes": 160,
+      "sha256": "2afed11a7e1a0c3906da68e133c2eb0c9e5c780a2a0851e5f020e96b05d2b1d4"
+    },
+    {
+      "path": "Arc/openbox-3/themerc",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/Arc/openbox-3/themerc",
+      "bytes": 4373,
+      "sha256": "2cbcd42d36de3859088067dd3fd7736368a7dadc2397abb0581a44ca5996e00a"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/dglava/arc-openbox/5ebdb7f54271b0bf0714bc3bae46b4ea90bb29c3/LICENSE",
+      "bytes": 35122,
+      "sha256": "12ac5047f2af0522f06798b1589ffc4599bc29c91f954d7874e0320634e777c0"
+    }
+  ]
+}

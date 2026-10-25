@@ -1,0 +1,11 @@
+[Unit]
+Description=Prepare the optional Pocket clipboard channel
+After=systemd-udev-trigger.service
+Before=display-manager.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I -B /opt/pocket/guest_clipboard.py --prepare
+TimeoutStartSec=30
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

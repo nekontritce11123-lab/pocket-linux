@@ -1,0 +1,418 @@
+<Application x:Class="WindowsClaude.Launcher.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Light" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- iOS / Telegram palette -->
+            <SolidColorBrush x:Key="Page" Color="#F2F2F7" />
+            <SolidColorBrush x:Key="Group" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="Line" Color="#E6E6EB" />
+            <SolidColorBrush x:Key="Ink" Color="#1C1C1E" />
+            <SolidColorBrush x:Key="Muted" Color="#8A8A8E" />
+            <SolidColorBrush x:Key="Accent" Color="#3390EC" />
+            <SolidColorBrush x:Key="AccentPressed" Color="#2B7CD3" />
+            <SolidColorBrush x:Key="Danger" Color="#E53935" />
+            <SolidColorBrush x:Key="Hover" Color="#F6F6F8" />
+            <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+
+            <Style x:Key="Caption" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="Foreground" Value="{StaticResource Muted}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="GroupTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="Foreground" Value="{StaticResource Muted}" />
+                <Setter Property="Margin" Value="18,0,0,7" />
+            </Style>
+            <Style x:Key="RowText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="RowValue" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="{StaticResource Muted}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+
+            <!-- A white rounded group of rows -->
+            <Style x:Key="GroupBox" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource Group}" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Margin" Value="0,0,0,22" />
+                <Setter Property="ClipToBounds" Value="True" />
+            </Style>
+            <Style x:Key="Separator" TargetType="Border">
+                <Setter Property="Height" Value="1" />
+                <Setter Property="Background" Value="{StaticResource Line}" />
+                <Setter Property="Margin" Value="56,0,0,0" />
+            </Style>
+
+            <!-- Tap scale shared by all buttons: a soft press and an unhurried release -->
+            <CubicEase x:Key="Soft" EasingMode="EaseOut" />
+            <Style x:Key="Tappable" TargetType="ButtonBase">
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform"><Setter.Value><ScaleTransform /></Setter.Value></Setter>
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Style.Triggers>
+                    <EventTrigger RoutedEvent="PreviewMouseLeftButtonDown">
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.965" Duration="0:0:0.16" EasingFunction="{StaticResource Soft}" />
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.965" Duration="0:0:0.16" EasingFunction="{StaticResource Soft}" />
+                        </Storyboard></BeginStoryboard>
+                    </EventTrigger>
+                    <EventTrigger RoutedEvent="PreviewMouseLeftButtonUp">
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.3" EasingFunction="{StaticResource Soft}" />
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.3" EasingFunction="{StaticResource Soft}" />
+                        </Storyboard></BeginStoryboard>
+                    </EventTrigger>
+                    <EventTrigger RoutedEvent="MouseLeave">
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.3" EasingFunction="{StaticResource Soft}" />
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.3" EasingFunction="{StaticResource Soft}" />
+                        </Storyboard></BeginStoryboard>
+                    </EventTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Hover shade that fades in and out instead of switching -->
+            <Storyboard x:Key="ShadeIn"><DoubleAnimation Storyboard.TargetName="Shade" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" EasingFunction="{StaticResource Soft}" /></Storyboard>
+            <Storyboard x:Key="ShadeOut"><DoubleAnimation Storyboard.TargetName="Shade" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.28" EasingFunction="{StaticResource Soft}" /></Storyboard>
+
+            <!-- Big rounded main action -->
+            <Style x:Key="Pill" TargetType="Button" BasedOn="{StaticResource Tappable}">
+                <Setter Property="Background" Value="{StaticResource Accent}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Height" Value="52" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Body">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="14" />
+                                <Border x:Name="Shade" Background="#14000000" CornerRadius="14" Opacity="0" />
+                                <ContentPresenter Margin="22,0" HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Body" Property="Opacity" Value="0.45" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="SoftPill" TargetType="Button" BasedOn="{StaticResource Pill}">
+                <Setter Property="Background" Value="#E9F2FD" />
+                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            </Style>
+            <Style x:Key="DangerPill" TargetType="Button" BasedOn="{StaticResource Pill}">
+                <Setter Property="Background" Value="#FDECEC" />
+                <Setter Property="Foreground" Value="{StaticResource Danger}" />
+            </Style>
+            <Style x:Key="TextAction" TargetType="Button" BasedOn="{StaticResource Tappable}">
+                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Border x:Name="Shade" Background="#143390EC" CornerRadius="8" Opacity="0" />
+                                <ContentPresenter Margin="7,4" TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- A tappable settings row -->
+            <Style x:Key="Row" TargetType="Button" BasedOn="{StaticResource Tappable}">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Padding" Value="16,8" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Body" Background="Transparent" MinHeight="52">
+                                <Border x:Name="Shade" Background="#0B000000" CornerRadius="11" Margin="6,3" Opacity="0" />
+                                <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Body" Property="Opacity" Value="0.45" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- The same row, lower: used by the tray menu -->
+            <Style x:Key="MenuRow" TargetType="Button" BasedOn="{StaticResource Tappable}">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Padding" Value="12,4" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Body" Background="Transparent" MinHeight="38">
+                                <Border x:Name="Shade" Background="#0B000000" CornerRadius="9" Margin="4,2" Opacity="0" />
+                                <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Body" Property="Opacity" Value="0.45" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="RowNoScale" TargetType="Button" BasedOn="{StaticResource Row}">
+                <Setter Property="RenderTransform"><Setter.Value><ScaleTransform /></Setter.Value></Setter>
+            </Style>
+
+            <!-- The same Debian-inspired spiral is drawn into AppIcon.ico. -->
+            <ControlTemplate x:Key="LogoMark" TargetType="ContentControl">
+                <Viewbox>
+                    <Grid Width="100" Height="100" Background="Transparent">
+                        <Grid.Resources>
+                            <Storyboard x:Key="Pop">
+                                <DoubleAnimation Storyboard.TargetName="LinuxMark" Storyboard.TargetProperty="RenderTransform.ScaleX" From="0" To="1" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="LinuxMark" Storyboard.TargetProperty="RenderTransform.ScaleY" From="0" To="1" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            </Storyboard>
+                        </Grid.Resources>
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="Grid.Loaded"><BeginStoryboard Storyboard="{StaticResource Pop}" /></EventTrigger>
+                            <EventTrigger RoutedEvent="Grid.MouseEnter"><BeginStoryboard Storyboard="{StaticResource Pop}" /></EventTrigger>
+                        </Grid.Triggers>
+                        <Path x:Name="LinuxMark" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100" Data="M 123,120 C 100,144 61,133 50,108 C 36,75 58,37 92,33 C 123,29 145,53 141,79 C 138,102 115,115 94,105 C 77,97 76,76 87,67 C 97,58 110,63 113,73 C 116,82 109,90 101,87" Stroke="White" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"><Path.RenderTransform><ScaleTransform /></Path.RenderTransform></Path>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+
+            <!-- Big round launch button -->
+            <Style x:Key="Orb" TargetType="Button" BasedOn="{StaticResource Tappable}">
+                <Setter Property="Width" Value="152" />
+                <Setter Property="Height" Value="152" />
+                <Setter Property="Background" Value="{StaticResource Accent}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Body">
+                                <Ellipse x:Name="Disc" Fill="{TemplateBinding Background}" />
+                                <Ellipse x:Name="Shade" Fill="#18FFFFFF" Opacity="0" />
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Disc" Property="Fill" Value="#C7C7CC" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <!-- Grows a little under the mouse; press/release comes from Tappable -->
+                    <EventTrigger RoutedEvent="MouseEnter">
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.04" Duration="0:0:0.35" EasingFunction="{StaticResource Soft}" />
+                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.04" Duration="0:0:0.35" EasingFunction="{StaticResource Soft}" />
+                        </Storyboard></BeginStoryboard>
+                    </EventTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Form in a group: one line per field, label on the left, thin rule between lines -->
+            <Style x:Key="FormLine" TargetType="DockPanel">
+                <Setter Property="MinHeight" Value="40" />
+                <Setter Property="LastChildFill" Value="True" />
+            </Style>
+            <!-- Plain text entry inside a form line: no box, the line itself is the field -->
+            <Style x:Key="FormField" TargetType="TextBox">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                <Setter Property="CaretBrush" Value="{StaticResource Accent}" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border Background="Transparent"><ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" /></Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="FormSecret" TargetType="PasswordBox">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                <Setter Property="CaretBrush" Value="{StaticResource Accent}" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="PasswordBox">
+                            <Border Background="Transparent"><ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" /></Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- Grey hint shown inside an empty field -->
+            <Style x:Key="FormHint" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="#B4B4B9" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="2,0,0,0" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+            <Style x:Key="FormLabel" TargetType="TextBlock" BasedOn="{StaticResource RowText}">
+                <Setter Property="Width" Value="104" />
+                <Setter Property="DockPanel.Dock" Value="Left" />
+            </Style>
+            <Style x:Key="FormRule" TargetType="Border">
+                <Setter Property="Height" Value="1" />
+                <Setter Property="Background" Value="{StaticResource Line}" />
+            </Style>
+
+            <!-- Segmented choice inside a grey capsule (same look as the − / + steppers) -->
+            <Style x:Key="Seg" TargetType="RadioButton">
+                <Setter Property="GroupName" Value="ptype" />
+                <Setter Property="FontSize" Value="13.5" />
+                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Grid>
+                                <Border x:Name="Shade" Background="#0C000000" CornerRadius="8" Opacity="0" />
+                                <Border x:Name="Tile" Background="Transparent" CornerRadius="7" Padding="11,4">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Tile" Property="Background" Value="White" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Round − / + stepper buttons -->
+            <Style x:Key="Step" TargetType="Button" BasedOn="{StaticResource Tappable}">
+                <Setter Property="Width" Value="32" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="FontSize" Value="18" />
+                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Body" Background="Transparent">
+                                <Border x:Name="Shade" Background="#1A3390EC" CornerRadius="9" Opacity="0" />
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions><BeginStoryboard Storyboard="{StaticResource ShadeIn}" /></Trigger.EnterActions>
+                                    <Trigger.ExitActions><BeginStoryboard Storyboard="{StaticResource ShadeOut}" /></Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Body" Property="Opacity" Value="0.4" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Borderless number in a row -->
+            <Style x:Key="Number" TargetType="TextBox">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                <Setter Property="TextAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Width" Value="52" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="Body" CornerRadius="10" Background="Transparent" Padding="2,4">
+                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Body" Property="Background" Value="#F0F3F8" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Rounded input field -->
+            <Style x:Key="Field" TargetType="TextBox">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Foreground" Value="{StaticResource Ink}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="Body" CornerRadius="11" Background="#F2F2F7" Padding="12,5" BorderThickness="1.5" BorderBrush="Transparent">
+                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Body" Property="BorderBrush" Value="{StaticResource Accent}" /><Setter TargetName="Body" Property="Background" Value="White" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="SecretField" TargetType="PasswordBox">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="PasswordBox">
+                            <Border x:Name="Body" CornerRadius="11" Background="#F2F2F7" Padding="12,5" BorderThickness="1.5" BorderBrush="Transparent">
+                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Body" Property="BorderBrush" Value="{StaticResource Accent}" /><Setter TargetName="Body" Property="Background" Value="White" /></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

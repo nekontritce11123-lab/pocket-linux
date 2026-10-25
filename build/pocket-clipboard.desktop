@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Pocket Clipboard
+Exec=/usr/bin/python3 -I -B /opt/pocket/guest_clipboard.py
+OnlyShowIn=LXQt;KDE;
+NoDisplay=true
+X-LXQt-Need-Tray=false

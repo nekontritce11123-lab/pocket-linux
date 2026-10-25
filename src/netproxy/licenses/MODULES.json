@@ -1,0 +1,185 @@
+[
+  {
+    "module": "github.com/andybalholm/brotli",
+    "version": "v1.0.6",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/andybalholm/brotli"
+  },
+  {
+    "module": "github.com/google/btree",
+    "version": "v1.1.2",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/google/btree"
+  },
+  {
+    "module": "github.com/google/gopacket",
+    "version": "v1.1.19",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/google/gopacket"
+  },
+  {
+    "module": "github.com/huin/goupnp",
+    "version": "v1.2.0",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/huin/goupnp"
+  },
+  {
+    "module": "github.com/jackpal/go-nat-pmp",
+    "version": "v1.0.2",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/jackpal/go-nat-pmp"
+  },
+  {
+    "module": "github.com/klauspost/compress",
+    "version": "v1.17.9",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/klauspost/compress"
+  },
+  {
+    "module": "github.com/koron/go-ssdp",
+    "version": "v0.0.4",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/koron/go-ssdp"
+  },
+  {
+    "module": "github.com/libp2p/go-nat",
+    "version": "v1.0.1-0.20250821073202-01afc089f138",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/libp2p/go-nat"
+  },
+  {
+    "module": "github.com/libp2p/go-netroute",
+    "version": "v0.2.1",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/libp2p/go-netroute"
+  },
+  {
+    "module": "github.com/metacubex/utls",
+    "version": "v1.8.7",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/metacubex/utls"
+  },
+  {
+    "module": "github.com/quic-go/qpack",
+    "version": "v0.6.0",
+    "licenses": [
+      "LICENSE.md"
+    ],
+    "source": "https://github.com/quic-go/qpack"
+  },
+  {
+    "module": "github.com/sagernet/gvisor",
+    "version": "v0.0.0-20260727.0-sing-box-mod.1",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/sagernet/gvisor"
+  },
+  {
+    "module": "github.com/sagernet/quic-go",
+    "version": "v0.61.0-sing-box-mod.9",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/sagernet/quic-go"
+  },
+  {
+    "module": "github.com/sagernet/sing-quic",
+    "version": "v0.7.2-0.20261002084117-75c3ac4fa12b",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/sagernet/sing-quic"
+  },
+  {
+    "module": "github.com/sagernet/sing",
+    "version": "v0.9.7-0.20260929150544-0ad23b637bd4",
+    "licenses": [
+      "LICENSE"
+    ],
+    "source": "https://github.com/sagernet/sing"
+  },
+  {
+    "module": "golang.org/x/crypto",
+    "version": "v0.54.0",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/crypto"
+  },
+  {
+    "module": "golang.org/x/exp",
+    "version": "v0.0.0-20250911091902-df9299821621",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/exp"
+  },
+  {
+    "module": "golang.org/x/net",
+    "version": "v0.56.0",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/net"
+  },
+  {
+    "module": "golang.org/x/sync",
+    "version": "v0.22.0",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/sync"
+  },
+  {
+    "module": "golang.org/x/sys",
+    "version": "v0.47.0",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/sys"
+  },
+  {
+    "module": "golang.org/x/text",
+    "version": "v0.40.0",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/text"
+  },
+  {
+    "module": "golang.org/x/time",
+    "version": "v0.15.0",
+    "licenses": [
+      "LICENSE",
+      "PATENTS"
+    ],
+    "source": "https://golang.org/x/time"
+  }
+]

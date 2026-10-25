@@ -1,0 +1,11 @@
+bin/
+obj/
+__pycache__/
+*.pyc
+runtime/
+images/
+*.exe
+*.dll
+*.qcow2
+*.zip
+.beads/
